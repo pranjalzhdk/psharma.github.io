@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solid Maze Switch</title>
+    <title>Torch Maze Switch</title>
     <style>
         body {
-            background-color: #1a1a1a;
-            color: #eee;
+            /* Start in "Dark Mode" */
+            background-color: #050505; 
+            color: #444;
             font-family: 'Courier New', Courier, monospace;
             display: flex;
             flex-direction: column;
@@ -16,60 +17,101 @@
             height: 100vh;
             margin: 0;
             overflow: hidden;
-            cursor: none; /* Hide real mouse globally */
+            cursor: none; /* Hide real mouse */
+            transition: background-color 0.5s ease-in; /* Smooth light-up effect */
+        }
+
+        /* When the switch is hit, this class is added to Body */
+        body.lights-on {
+            background-color: #f0f0f0; /* Bright Room */
         }
 
         h1 {
             margin-bottom: 20px;
-            letter-spacing: 2px;
-            color: #666;
+            letter-spacing: 4px;
+            /* CHANGED: Text is now WHITE so you can see it in the dark */
+            color: #ffffff; 
             text-transform: uppercase;
+            /* OPTIONAL: I increased opacity from 0.3 to 0.6 so it is clearer */
+            opacity: 0.6; 
+            transition: color 0.5s, opacity 0.5s;
+        }
+        
+        /* CHANGED: When lights turn on, text turns DARK so it's readable on white */
+        body.lights-on h1 { 
+            opacity: 1; 
+            color: #333333;
         }
 
         #game-container {
             position: relative;
-            width: 500px; /* Must match script size */
+            width: 500px; 
             height: 500px;
         }
 
         canvas {
-            background: #fff;
+            background: #111; /* Dark Maze background */
             border-radius: 50%;
-            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            /* Initial dim glow */
+            box-shadow: 0 0 20px rgba(0,0,0,0.8); 
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* The Torch Glow Effect on the Canvas */
+        body.lights-on canvas {
+            background: #fff;
+            transform: scale(1.02);
+            /* Massive Flashlight Glow */
+            box-shadow: 0 0 100px 20px rgba(255, 255, 200, 0.6), 
+                        inset 0 0 50px rgba(255, 255, 200, 0.5);
+            border: 4px solid #fff;
         }
 
         /* The Dot */
         #cursor-dot {
-            width: 8px;
-            height: 8px;
-            background: #ff3333;
+            width: 10px;
+            height: 10px;
+            background: #ff0000; /* Red laser initially */
             border-radius: 50%;
             position: absolute;
             top: 0; left: 0;
             transform: translate(-50%, -50%);
             pointer-events: none;
             z-index: 100;
-            box-shadow: 0 0 8px #ff3333;
+            box-shadow: 0 0 10px #ff0000;
+            transition: all 0.3s;
+        }
+
+        /* When ON, cursor becomes bright white */
+        body.lights-on #cursor-dot {
+            background: #ffffff;
+            box-shadow: 0 0 20px #ffffff, 0 0 40px #ffffff;
+            width: 14px;
+            height: 14px;
         }
 
         #status {
             margin-top: 30px;
             font-size: 1.5rem;
             font-weight: bold;
-            color: #ff4444;
+            color: #333;
+            opacity: 0;
+            transition: opacity 1s;
         }
+        body.lights-on #status { opacity: 1; }
+
     </style>
 </head>
 <body>
 
-    <h1>Manual Override</h1>
+    <h1>Torch</h1>
 
     <div id="game-container">
         <canvas id="mazeCanvas"></canvas>
         <div id="cursor-dot"></div>
     </div>
 
-    <div id="status">LOCKED</div>
+    <div id="status">TORCH ENABLED</div>
 
     <script src="script.js"></script>
 </body>
