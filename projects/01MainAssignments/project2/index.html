@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solid Maze Switch</title>
+    <style>
+        body {
+            background-color: #1a1a1a;
+            color: #eee;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            cursor: none; /* Hide real mouse globally */
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        #game-container {
+            position: relative;
+            width: 500px; /* Must match script size */
+            height: 500px;
+        }
+
+        canvas {
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+        }
+
+        /* The Dot */
+        #cursor-dot {
+            width: 8px;
+            height: 8px;
+            background: #ff3333;
+            border-radius: 50%;
+            position: absolute;
+            top: 0; left: 0;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 100;
+            box-shadow: 0 0 8px #ff3333;
+        }
+
+        #status {
+            margin-top: 30px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #ff4444;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Manual Override</h1>
+
+    <div id="game-container">
+        <canvas id="mazeCanvas"></canvas>
+        <div id="cursor-dot"></div>
+    </div>
+
+    <div id="status">LOCKED</div>
+
+    <script src="script.js"></script>
+</body>
+</html>
