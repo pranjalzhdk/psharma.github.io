@@ -37,7 +37,7 @@ function initMaze() {
     
     for (let i = 1; i <= RINGS; i++) {
         walls.push({
-            r: i * step + 25, // Push rings out slightly
+            r: i * step + 25, 
             angle: Math.random() * Math.PI * 2,
             speed: (i % 2 === 0 ? 1 : -1) * (ROTATION_SPEED + Math.random() * 0.003)
         });
@@ -46,7 +46,8 @@ function initMaze() {
 
 // --- PHYSICS ENGINE ---
 function updateDotPosition() {
-    if (isWon) return;
+    // CHANGE 1: We removed "if (isWon) return;" 
+    // This allows the dot to keep moving even after the light is on.
 
     const dx = targetX - dotX;
     const dy = targetY - dotY;
@@ -66,7 +67,6 @@ function updateDotPosition() {
         const nextY = dotY + stepY;
 
         if (isWall(nextX, nextY)) {
-            // We hit a wall, stop moving.
             break; 
         } else {
             dotX = nextX;
@@ -77,22 +77,31 @@ function updateDotPosition() {
     dotElement.style.left = `${dotX}px`;
     dotElement.style.top = `${dotY}px`;
 
-    // Check Win (Center)
+    // --- STATE CHECKING ---
     const cx = SIZE / 2;
     const cy = SIZE / 2;
     const distToCenter = Math.sqrt((dotX - cx) ** 2 + (dotY - cy) ** 2);
     
-    // Trigger win if close to center
-    if (distToCenter < 20) triggerWin();
+    // Logic: Turn ON if in center, Turn OFF if outside maze
+    if (!isWon && distToCenter < 20) {
+        turnOn();
+    } else if (isWon && distToCenter > MAZE_RADIUS + 20) {
+        // CHANGE 2: If we are WON and we leave the maze area -> Turn OFF
+        turnOff();
+    }
 }
 
-// --- COLLISION CHECKER (THE FIX) ---
+// --- COLLISION CHECKER ---
 function isWall(x, y) {
+    // CHANGE 3: If the light is ON (isWon), disable collision 
+    // This lets the user walk out easily without hitting invisible walls
+    if (isWon) return false;
+
     const cx = SIZE / 2;
     const cy = SIZE / 2;
     const dist = Math.sqrt((x - cx) ** 2 + (y - cy) ** 2);
     
-    // 1. SAFE ZONE: Allow free movement outside the maze
+    // 1. SAFE ZONE
     if (dist > MAZE_RADIUS + 10) return false;
 
     // 2. Pixel Check
@@ -102,28 +111,21 @@ function isWall(x, y) {
     if(px < 0 || px >= canvas.width || py < 0 || py >= canvas.height) return false;
 
     const pixel = ctx.getImageData(px, py, 1, 1).data;
-    // pixel = [Red, Green, Blue, Alpha]
 
-    // LOGIC FIX: 
-    // Instead of checking for "Dark", we check for "Blue/Cyan".
-    // Walls are drawn with Neon Blue (#00d2ff).
-    // So if the Blue channel (pixel[2]) is high, it's a wall.
-    // Background is dark grey, so Blue is low.
-    
+    // Check for Neon Blue pixels
     return (pixel[2] > 100); 
 }
 
 // --- DRAW LOOP ---
 function draw() {
-    // 1. Background
-    // Dark Grey for gameplay, White for "Lights On"
+    // Background color based on state
     ctx.fillStyle = isWon ? "#ffffff" : "#1a1a1a"; 
     ctx.fillRect(0, 0, SIZE, SIZE);
 
     const cx = SIZE / 2;
     const cy = SIZE / 2;
 
-    // 2. Center "Torch Bulb"
+    // Center "Torch Bulb"
     ctx.beginPath();
     ctx.arc(cx, cy, 20, 0, Math.PI * 2);
     
@@ -139,20 +141,18 @@ function draw() {
     ctx.fill();
     ctx.shadowBlur = 0; 
 
-    // 3. Draw Text "ON"
+    // Draw Text "ON"
     ctx.fillStyle = isWon ? '#orange' : '#555';
     ctx.font = "bold 20px Arial";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle"; 
     ctx.fillText(isWon ? "" : "ON", cx, cy + 1); 
 
-    // 4. Draw Walls
+    // Draw Walls
     ctx.lineWidth = WALL_THICKNESS;
     ctx.lineCap = "butt"; 
     
-    // COLOR LOGIC: 
-    // If Playing: NEON BLUE (#00d2ff) - Easy for code to see
-    // If Won: Fade out to light grey
+    // Walls fade out when won
     ctx.strokeStyle = isWon ? "rgba(0,0,0,0.05)" : "#00d2ff"; 
 
     walls.forEach(w => {
@@ -166,12 +166,23 @@ function draw() {
     requestAnimationFrame(draw);
 }
 
-function triggerWin() {
+// --- STATE FUNCTIONS ---
+
+function turnOn() {
     if(isWon) return;
     isWon = true;
-    
-    // Trigger CSS Animations
     body.classList.add('lights-on');
+    statusText.innerText = "TORCH ENABLED";
+}
+
+function turnOff() {
+    if(!isWon) return;
+    isWon = false;
+    body.classList.remove('lights-on');
+    statusText.innerText = "TORCH DISABLED";
+    
+    // Optional: Reset maze rotation or randomize it again?
+    // initMaze(); 
 }
 
 // --- INPUT HANDLER ---
