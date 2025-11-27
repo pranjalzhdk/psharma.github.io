@@ -11,10 +11,14 @@ let isWon = false;
 let dotX, dotY;
 
 function setup() {
+    // Create Canvas and attach to the HTML div
     let cnv = createCanvas(SIZE, SIZE);
     cnv.parent('canvas-container');
+    
+    // Smooth edges
     smooth();
     
+    // Start dot at bottom center
     dotX = width / 2;
     dotY = height + 100;
 
@@ -39,8 +43,7 @@ function draw() {
     if (isWon) {
         background(255); // White
     } else {
-        // MATCH BODY COLOR (5 is approx #050505)
-        background(5);  
+        background(20);  // Dark Grey
     }
 
     let cx = width / 2;
@@ -49,9 +52,9 @@ function draw() {
     // 2. Draw Center Bulb
     noStroke();
     if (isWon) {
-        fill(255, 165, 0); 
+        fill(255, 165, 0); // Orange Center
     } else {
-        fill(40); 
+        fill(40); // Dark Center
     }
     ellipse(cx, cy, 40);
 
@@ -68,15 +71,20 @@ function draw() {
     strokeWeight(WALL_THICKNESS);
     strokeCap(SQUARE);
 
-    if (isWon) stroke(0, 0, 0, 10); 
-    else stroke(0, 210, 255);       
+    if (isWon) stroke(0, 0, 0, 10); // Faint shadow if won
+    else stroke(0, 210, 255);       // Neon Blue if playing
 
     for (let w of walls) {
+        // Rotate logic
         if (!isWon) w.angle += w.speed;
 
+        // Use Push/Pop to rotate the grid for this specific ring
         push();
         translate(cx, cy);
         rotate(w.angle); 
+        // Draw the ring from the end of the gap to the start of the gap (almost full circle)
+        // We draw from GAP_SIZE to TWO_PI. 
+        // Because we rotated the grid, the gap is always visually at angle 0 relative to rotation.
         arc(0, 0, w.r * 2, w.r * 2, GAP_SIZE, TWO_PI);
         pop();
     }
@@ -95,6 +103,7 @@ function updateDotPhysics() {
     let dy = mouseY - dotY;
     let distToMouse = sqrt(dx*dx + dy*dy);
 
+    // Stop jitter
     if (distToMouse < 1) return;
 
     let maxSpeed = 25;
@@ -102,6 +111,7 @@ function updateDotPhysics() {
     let stepX = dx / distToMouse;
     let stepY = dy / distToMouse;
 
+    // Check collision pixel-by-pixel
     for (let i = 0; i < moveDist; i++) {
         let nextX = dotX + stepX;
         let nextY = dotY + stepY;
@@ -124,6 +134,7 @@ function updateDotPhysics() {
     }
 }
 
+// Optimized Math Collision
 function checkCollisionMath(x, y) {
     if (isWon) return false;
 
@@ -131,22 +142,33 @@ function checkCollisionMath(x, y) {
     let cy = height / 2;
     let d = dist(x, y, cx, cy);
 
+    // Safe Zone (Outside)
     if (d > MAZE_RADIUS + 10) return false;
 
+    // Check each ring
     for (let w of walls) {
+        // 1. Is dot radius matching this ring radius?
         if (abs(d - w.r) < WALL_THICKNESS / 2) {
+            
+            // 2. It's in the ring, check angle for the gap
             let a = atan2(y - cy, x - cx);
+            
+            // Normalize angle to be positive (0 to TWO_PI)
             if (a < 0) a += TWO_PI;
 
+            // Normalize wall angle to 0 to TWO_PI
             let wallA = w.angle % TWO_PI;
             if (wallA < 0) wallA += TWO_PI;
 
+            // Calculate the dot's angle relative to the wall's rotation
             let relAngle = a - wallA;
             if (relAngle < 0) relAngle += TWO_PI;
             relAngle = relAngle % TWO_PI;
 
+            // The Gap is at the "beginning" of the rotation (0 to GAP_SIZE)
+            // If our relative angle is NOT inside that small gap zone, we hit a wall
             if (relAngle > GAP_SIZE) {
-                return true; 
+                return true; // HIT WALL
             }
         }
     }
@@ -156,6 +178,7 @@ function checkCollisionMath(x, y) {
 function setTorch(state) {
     isWon = state;
     
+    // Update HTML classes
     let body = document.body;
     let status = document.getElementById('status');
     

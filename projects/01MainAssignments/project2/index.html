@@ -37,18 +37,21 @@
         
         body.lights-on h1 { color: #333333; }
 
-        /* --- CANVAS CONTAINER --- */
+        /* --- CANVAS CONTAINER (The Fix) --- */
         #canvas-container {
             position: relative;
             width: 500px; 
             height: 500px;
+            /* ENSURING CIRCULAR SHAPE */
             border-radius: 50%;
-            /* REMOVED BOX SHADOW HERE */
+            overflow: hidden; /* Crucial: Clips anything outside the circle, like stray shadows/borders */
+            
             transition: box-shadow 0.5s;
         }
 
         /* Torch Glow Effect (Only appears when won) */
         body.lights-on #canvas-container {
+            /* Massive Flashlight Glow - Contained within the circle */
             box-shadow: 0 0 100px 20px rgba(255, 255, 200, 0.6), 
                         inset 0 0 50px rgba(255, 255, 200, 0.5);
             background: #fff;
@@ -64,13 +67,14 @@
         }
         body.lights-on #status { color: #333; }
         
+        /* Hide mouse and ensure canvas is styled by p5 */
         canvas { cursor: none; }
 
     </style>
 </head>
 <body>
 
-    <h1>TORCH</h1>
+    <h1>System Power</h1>
 
     <div id="canvas-container"></div>
 
